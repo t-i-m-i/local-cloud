@@ -1,0 +1,46 @@
+# Docker Compose file: describes the containers that make up the app locally
+# and how they connect. `docker compose up` creates and starts all of them.
+services:
+  # The database. We use the official image as is, no Dockerfile needed.
+  db:
+    image: postgres:16-alpine
+    environment:
+      # The postgres image creates this database and user on its first start.
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Named volume: Docker-managed storage that survives container removal,
+      # so data is kept between restarts. `docker compose down -v` deletes it.
+      - pgdata:/var/lib/postgresql/data
+      # Files in this folder run once, when the database is first created empty.
+      # That is how our tables and seed data get in.
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      # Docker runs this command every few seconds; "healthy" once it succeeds.
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  # Our Fastify app, built from the Dockerfile in this folder.
+  api:
+    build: .
+    ports:
+      # host:container. Browser http://localhost:3000 -> app port 3000.
+      - "3000:3000"
+    environment:
+      # "db" is the service name above: Compose gives containers a private
+      # network where each can reach the others by service name.
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        # Start the app only after the database health check passes.
+        condition: service_healthy
+
+# Declares the named volume used by the db service.
+volumes:
+  pgdata:
