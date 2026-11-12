@@ -9,6 +9,8 @@ New to Docker or AWS? Read [docs/architecture.md](docs/architecture.md) first.
 1. Run a web app and its database with one command (Docker Compose).
 2. Practice the AWS pieces that would run the same app in the cloud: ECR, RDS, Secrets Manager, IAM, CloudWatch Logs and ECS (EC2 launch type, no Fargate), without an AWS account.
 
+<img width="824" height="585" alt="screen" src="https://github.com/user-attachments/assets/d0ea8719-f4fb-44bf-a850-a9816afe3145" />
+
 ## Stack
 
 | Piece | What it is for |
